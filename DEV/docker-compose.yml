@@ -1,18 +1,86 @@
 version: "2"
 services:
+
+    # MongoDB: https://hub.docker.com/_/mongo/
+    mongodb:
+        image: mongo:3
+        volumes:
+          - mongo_data:/data/db
+      # Elasticsearch: https://www.elastic.co/guide/en/elasticsearch/reference/5.5/docker.html
+    elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:5.5.1
+        volumes:
+          - es_data:/usr/share/elasticsearch/data
+        environment:
+          - http.host=0.0.0.0
+          - transport.host=localhost
+          - network.host=0.0.0.0
+          # Disable X-Pack security: https://www.elastic.co/guide/en/elasticsearch/reference/5.5/security-settings.html#general-security-settings
+          - xpack.security.enabled=false
+          - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+        ulimits:
+          memlock:
+            soft: -1
+            hard: -1
+        mem_limit: 1g
+    # Graylog: https://hub.docker.com/r/graylog/graylog/
+    graylog:
+        image: graylog/graylog:2.3.0-1
+        volumes:
+          - graylog_journal:/usr/share/graylog/data/journal
+        environment:
+          # CHANGE ME!
+          - GRAYLOG_PASSWORD_SECRET=somepasswordpepper
+          # Password: admin
+          - GRAYLOG_ROOT_PASSWORD_SHA2=8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918
+          - GRAYLOG_WEB_ENDPOINT_URI=http://www.edaoduo.com:9000/api
+        links:
+          - mongodb:mongo
+          - elasticsearch
+        depends_on:
+          - mongodb
+          - elasticsearch
+        ports:
+          # Graylog web interface and REST API
+          - 9000:9000
+          # Syslog TCP
+          - 514:514
+          # Syslog UDP
+          - 514:514/udp
+          - 5555:5555/udp
+          # GELF TCP
+          - 12201:12201
+          # GELF UDP
+          - 12201:12201/udp
+
+
     # MySQL 5.7: https://hub.docker.com/_/mysql/
     mysql:
         container_name: mysql
         image: mysql:5.7
         environment:
             MYSQL_ROOT_PASSWORD: "root"
-            MYSQL_USER: "youwo"
-            MYSQL_PASSWORD: "123456"
-            MYSQL_DATABASE: "youwo_dliao"
+            MYSQL_USER: "aoduo"
+            MYSQL_PASSWORD: "aoduo168"
+            MYSQL_DATABASE: "aoduo"
         volumes:
             - /home/docker/mysql:/var/lib/mysql
         ports:
             - "13306:3306"
+    #mqtt server
+    mqtt:
+        container_name: mymqtt
+        image: toke/mosquitto
+        ports:
+            - "1883:1883"
+        command: bash -c "/usr/sbin/mosquitto"
+    #kafka server
+    kafka:
+        container_name: mykafka
+        image: wurstmeister/kafka
+        ports:
+            - "9092:9092"
+        command: bash -c "cd /opt/kafka/ &&  bin/zookeeper-server-start.sh -daemon config/zookeeper.properties && bin/kafka-server-start.sh config/server.properties"
 
     # Redis 3.2.10: https://hub.docker.com/_/redis/
     redis:
@@ -24,80 +92,98 @@ services:
             - "16379:6379"
 
     # SD框架阿里云内网registry-internal.cn-hangzhou.aliyuncs.com/youwoxing/dev
-    ojl:
-        container_name: ojl
-        image: registry.cn-hangzhou.aliyuncs.com/youwoxing/dev
+    aoduo:
+        container_name: aoduo
+        image: mynpf
         links:
             - mysql
             - redis
         volumes:
-            - /home/docker_user/ojl:/home
+            - /etc/localtime:/etc/localtime:ro
+            - /home/lqh/projects/aoduo:/var/www/html
+            - /home/lqh/projects-conf/aoduo/nginx.conf:/etc/nginx/nginx.conf
+            - /home/lqh/projects-conf/aoduo/app:/etc/nginx/sites-enabled
+            - /home/lqh/projects-conf/aoduo/www.conf:/usr/local/etc/php-fpm.d/www.conf
         ports:
-            - "10183:8083"
-            - "10193:9093"
-            - "10122:22"
+            - "5225:8004"
+            - "5226:8003"
+            - "5221:8081"
+            - "5223:8019"
+            - "5224:8020"
+            - "5222:8000"
+            - "5212:8282"
+            - "5211:8383"
+            - "5241:8082"
 
-    zch:
-        container_name: zch
-        image: registry.cn-hangzhou.aliyuncs.com/youwoxing/dev
+    guanzhi:
+        container_name: guanzhi
+        image: mynpf
         links:
             - mysql
             - redis
         volumes:
-            - /home/docker_user/zch:/home
+            - /etc/localtime:/etc/localtime:ro
+            - /home/lqh/projects/guanzhi:/var/www/html
+            - /home/lqh/projects-conf/guanzhi/nginx.conf:/etc/nginx/nginx.conf
+            - /home/lqh/projects-conf/guanzhi/app:/etc/nginx/sites-enabled
+            - /home/lqh/projects-conf/guanzhi/www.conf:/usr/local/etc/php-fpm.d/www.conf
         ports:
-            - "10283:8083"
-            - "10293:9093"
-            - "10222:22"
-
-    ln:
-            container_name: ln
-            image: registry.cn-hangzhou.aliyuncs.com/youwoxing/dev
+            - "5175:8004"
+            - "5176:8003"
+            - "5171:8081"
+            - "5173:8019"
+            - "5174:8020"
+            - "5172:8000"
+            - "5162:8282"
+            - "5161:8383"
+            - "5191:8082"
+    taihe:
+            container_name: taihe
+            image: mynpf
             links:
                 - mysql
                 - redis
             volumes:
-                - /home/docker_user/ln:/home
+                - /etc/localtime:/etc/localtime:ro
+                - /home/lqh/projects/taihe:/var/www/html
+                - /home/lqh/projects-conf/taihe/nginx.conf:/etc/nginx/nginx.conf
+                - /home/lqh/projects-conf/taihe/app:/etc/nginx/sites-enabled
+                - /home/lqh/projects-conf/taihe/www.conf:/usr/local/etc/php-fpm.d/www.conf
             ports:
-                - "10383:8083"
-                - "10393:9093"
-                - "10322:22"
-
-    dwx:
-            container_name: dwx
-            image: registry.cn-hangzhou.aliyuncs.com/youwoxing/dev
+                - "5021:8081"
+                - "5023:8019"
+                - "5011:8383"
+                - "5041:8082"
+                - "5022:8000"
+                - "5012:8282"
+    zhongying:
+            container_name: zhongying
+            image: mynpf
             links:
                 - mysql
                 - redis
             volumes:
-                - /home/docker_user/dwx:/home
+                - /etc/localtime:/etc/localtime:ro
+                - /home/lqh/projects/zhongying:/var/www/html
+                - /home/lqh/projects-conf/zhongying/nginx.conf:/etc/nginx/nginx.conf
+                - /home/lqh/projects-conf/zhongying/app:/etc/nginx/sites-enabled
+                - /home/lqh/projects-conf/zhongying/www.conf:/usr/local/etc/php-fpm.d/www.conf
             ports:
-                - "10483:8083"
-                - "10493:9093"
-                - "10422:22"
+                - "5071:8081"
+                - "5076:8089"
+                - "5075:8090"
+                - "5074:8020"
+                - "5073:8019"
+                - "5072:8000"
+                - "5062:8282"
+                - "5061:8383"
+                - "5091:8082"
 
-    lc:
-            container_name: lc
-            image: registry.cn-hangzhou.aliyuncs.com/youwoxing/dev
-            links:
-                - mysql
-                - redis
-            volumes:
-                - /home/docker_user/lc:/home
-            ports:
-                - "10583:8083"
-                - "10593:9093"
-                - "10522:22"
-
-    jxy:
-            container_name: jxy
-            image: registry.cn-hangzhou.aliyuncs.com/youwoxing/dev
-            links:
-                - mysql
-                - redis
-            volumes:
-                - /home/docker_user/jxy:/home
-            ports:
-                - "10683:8083"
-                - "10693:9093"
-                - "10622:22"
+# Volumes for persisting data, see https://docs.docker.com/engine/admin/volumes/volumes/
+volumes:
+     mongo_data:
+          driver: local
+     es_data:
+          driver: local
+     graylog_journal:
+          driver: local            

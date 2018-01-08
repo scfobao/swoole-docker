@@ -32,11 +32,27 @@ RUN apt-get update && apt-get install -y \
 	&& phpize \
 	&& ./configure --enable-redis-igbinary \
 	&& make &&  make install \
+    && cd /home && rm -rf temp && mkdir temp && cd temp \
+    && wget https://github.com/edenhill/librdkafka/archive/master.zip \
+    && mv master.zip librdkafka-master.zip \
+    && unzip librdkafka-master.zip \
+    && cd librdkafka-master \
+    && ./configure \
+    && make \
+    && make install \
+    && cd /home && rm -rf temp && mkdir temp && cd temp \
+    && git clone https://github.com/arnaud-lb/php-rdkafka.git \
+    && cd php-rdkafka \
+    && phpize \
+    && ./configure \
+    && make all -j 5 \
+    && make install \
 	&& cd /home/temp \
 	&& php -r"copy('https://getcomposer.org/installer','composer-setup.php');" \
 	&& php composer-setup.php --install-dir=/usr/bin --filename=composer \
 	&& rm -rf /home/temp \
 	&& cd /usr/local/etc/php/conf.d/ \
+    && echo extension=rdkafka.so>rdkafka.ini \
 	&& echo extension=igbinary.so>igbinary.ini \
 	&& echo extension=redis.so>redis.ini \
 	&& echo extension=inotify.so>inotify.ini \
