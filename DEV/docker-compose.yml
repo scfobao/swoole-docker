@@ -178,7 +178,19 @@ services:
                 - "5062:8282"
                 - "5061:8383"
                 - "5091:8082"
-
+    aodsd:            
+            container_name: aodsd
+            image: sdbase
+            links:
+                - mysql
+                - redis
+                - mqtt
+                - kafka
+            volumes:
+                - /etc/localtime:/etc/localtime:ro
+                - /home/lqh/projects/aoduo/bus_plat/sd:/apps
+            ports:
+                - "18004:8004"
 # Volumes for persisting data, see https://docs.docker.com/engine/admin/volumes/volumes/
 volumes:
      mongo_data:
