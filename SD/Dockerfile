@@ -1,5 +1,5 @@
 # sd-swoole
-FROM sd-swoole
+FROM scfobao/sd-swoole:1.0
 MAINTAINER liqinghua 7913116@qq.com
 RUN mkdir /apps
 COPY composer.json /apps/composer.json

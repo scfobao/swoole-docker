@@ -1,0 +1,87 @@
+version: "2"
+services:
+    # MySQL 5.7: https://hub.docker.com/_/mysql/
+    mysql:
+        container_name: mysql
+        image: mysql:5.7
+        environment:
+            MYSQL_ROOT_PASSWORD: "root"
+            MYSQL_USER: "aoduo"
+            MYSQL_PASSWORD: "aoduo168"
+            MYSQL_DATABASE: "aoduo"
+        volumes:
+            - /f/docker/mysql:/var/lib/mysql
+        ports:
+            - "13306:3306"
+
+    # Redis 3.2.10: https://hub.docker.com/_/redis/
+    redis:
+        container_name: redis
+        image: redis:3.2.10
+        volumes:
+            - /f/docker/redis:/data
+        ports:
+            - "16379:6379"
+    guanzhi:
+        container_name: guanzhi
+        image: mynpf
+        links:
+            - mysql
+            - redis
+        volumes:
+            - /f/sites/guanzhi:/var/www/html
+            - /f/sites/projects-conf/base/nginx.conf:/etc/nginx/nginx.conf
+            - /f/sites/projects-conf/base/app:/etc/nginx/sites-enabled
+            - /f/sites/projects-conf/base/www.conf:/usr/local/etc/php-fpm.d/www.conf
+        ports:
+            - "5175:8004"
+            - "5176:8003"
+            - "5171:8081"
+            - "5173:8019"
+            - "5174:8020"
+            - "5172:8000"
+            - "5162:8282"
+            - "5161:8383"
+            - "5191:8082"
+    taihe:
+        container_name: taihe
+        image: mynpf
+        links:
+            - mysql
+            - redis
+        volumes:
+            - /f/sites/taihe:/var/www/html
+            - /f/sites/projects-conf/base/nginx.conf:/etc/nginx/nginx.conf
+            - /f/sites/projects-conf/base/app:/etc/nginx/sites-enabled
+            - /f/sites/projects-conf/base/www.conf:/usr/local/etc/php-fpm.d/www.conf
+        ports:
+            - "5021:8081"
+            - "5023:8019"
+            - "5011:8383"
+            - "5041:8082"
+            - "5022:8000"
+            - "5012:8282"
+    # SD框架阿里云内网registry-internal.cn-hangzhou.aliyuncs.com/youwoxing/dev
+    aoduo:
+        container_name: aoduo
+        image: mynpf
+        links:
+            - mysql
+            - redis
+        volumes:
+            - /f/sites/aoduo:/var/www/html
+            - /f/sites/projects-conf/aoduo/nginx.conf:/etc/nginx/nginx.conf
+            - /f/sites/projects-conf/aoduo/app:/etc/nginx/sites-enabled
+            - /f/sites/projects-conf/aoduo/www.conf:/usr/local/etc/php-fpm.d/www.conf
+        ports:
+            - "5225:8004"
+            - "5226:8003"
+            - "5221:8081"
+            - "5223:8019"
+            - "5224:8020"
+            - "5222:8000"
+            - "5212:8282"
+            - "5211:8383"
+            - "5241:8082"                
+
+         
