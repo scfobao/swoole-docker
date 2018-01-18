@@ -4,7 +4,7 @@ services:
         container_name: mysql
         image: mysql:5.7
         environment:
-            MYSQL_ROOT_PASSWORD: "root"
+            MYSQL_ROOT_PASSWORD: "@*(997dea"
             MYSQL_USER: "aoduo"
             MYSQL_PASSWORD: "aoduo168"
             MYSQL_DATABASE: "aoduo"
