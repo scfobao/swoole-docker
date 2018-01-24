@@ -6,8 +6,8 @@ ENV COMPOSER_VERSION 1.1.2
 
 RUN apk update
 #同步宿主机时间
-RUN apk add tzdata && cp /usr/share/zoneinfo/Asia/Chongqing /etc/localtime
-RUN apk del tzdata
+RUN apk add tzdata && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+#RUN apk del tzdata
 RUN apk add  php7-redis \   
      php7-xdebug \
      php7-pcntl \
@@ -26,6 +26,7 @@ RUN apk add  php7-redis \
 	 php7-xmlwriter \
      php7-posix \
      php7-opcache
+ 	 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer --version=${COMPOSER_VERSION} && \
 	chmod +x /usr/local/bin/composer	 
 ENV PHP_IDE_CONFIG  serverName=aoduo.dev
@@ -33,5 +34,6 @@ COPY xdebug.ini /etc/php7/conf.d/xdebug.ini
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY app/*.conf /etc/nginx/conf.d/
+COPY timezone.ini /etc/php7/conf.d/zzz_custom.ini
 WORKDIR /
 #CMD ["/bin/sh"]
