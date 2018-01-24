@@ -166,6 +166,71 @@ services:
                 - /home/lqh/projects/aoduo/bus_plat/sd:/apps
             ports:
                 - "5225:8004"
+    # SD框架阿里云内网registry-internal.cn-hangzhou.aliyuncs.com/youwoxing/dev
+    aoduo-test:
+        container_name: aoduo-test
+        image: mynpf
+        links:
+            - mysql
+            - redis
+        volumes:
+            - /home/lqh/projects-test/aoduo:/var/www/html
+        ports:
+            - "6221:8081"
+            - "6223:8019"
+            - "6224:8020"
+            - "6222:8000"
+            - "6212:8282"
+            - "6211:8383"
+            - "6241:8082"
+            - "6226:8021"
+            - "6227:8022"
+
+    guanzhi-test:
+        container_name: guanzhi-test
+        image: mynpf
+        links:
+            - mysql
+            - redis
+        volumes:
+            - /home/lqh/projects-test/guanzhi:/var/www/html
+        ports:
+            - "6171:8081"
+            - "6173:8019"
+            - "6174:8020"
+            - "6172:8000"
+            - "6162:8282"
+            - "6161:8383"
+            - "6191:8082"
+    taihe-test:
+            container_name: taihe-test
+            image: mynpf
+            links:
+                - mysql
+                - redis
+            volumes:
+                - /home/lqh/projects-test/taihe:/var/www/html
+            ports:
+                - "6021:8081"
+                - "6023:8019"
+                - "6011:8383"
+                - "6041:8082"
+                - "6022:8000"
+                - "6012:8282"
+    aodsd-test:
+            container_name: aodsd-test
+            image: sdbase
+            links:
+                - mysql
+                - redis
+                - mqtt
+                - kafka
+                - influxdb
+            volumes:
+                - /etc/localtime:/etc/localtime:ro
+                - /home/lqh/projects-test/aoduo/bus_plat/sd:/apps
+            ports:
+                - "6225:8004"
 # Volumes for persisting data, see https://docs.docker.com/engine/admin/volumes/volumes/
 volumes:
      mongo_data:
