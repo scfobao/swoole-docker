@@ -3,7 +3,7 @@ MAINTAINER scfobao <7913116@qq.com>
 # php-redis
 ENV PHPREDIS_VERSION 3.1.2
 ENV COMPOSER_VERSION 1.1.2
-
+ENV PS1="\h \w# "
 RUN apk update
 #ͬ²½ËÖ»ú
 RUN apk add tzdata && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
@@ -34,5 +34,7 @@ COPY nginx.conf /etc/nginx/nginx.conf
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY app/*.conf /etc/nginx/conf.d/
 COPY timezone.ini /etc/php7/conf.d/zzz_custom.ini          
-WORKDIR /
+RUN alias ll='ls -al'
+RUN ln -s /var/www/html /app
+WORKDIR /app
 #CMD ["/bin/sh"]

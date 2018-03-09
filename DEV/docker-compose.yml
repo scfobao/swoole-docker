@@ -5,6 +5,7 @@ services:
         image: tutum/influxdb
         container_name: influxdb
         volumes: 
+          - /etc/localtime:/etc/localtime:ro
           - influxdb_data:/var/lib/influxdb
         ports:
           - "18083:8083"
@@ -15,11 +16,13 @@ services:
     mongodb:
         image: mongo:3
         volumes:
+          - /etc/localtime:/etc/localtime:ro
           - mongo_data:/data/db
       # Elasticsearch: https://www.elastic.co/guide/en/elasticsearch/reference/5.5/docker.html
     elasticsearch:
         image: docker.elastic.co/elasticsearch/elasticsearch:5.5.1
         volumes:
+          - /etc/localtime:/etc/localtime:ro
           - es_data:/usr/share/elasticsearch/data
         environment:
           - http.host=0.0.0.0
@@ -27,7 +30,7 @@ services:
           - network.host=0.0.0.0
           # Disable X-Pack security: https://www.elastic.co/guide/en/elasticsearch/reference/5.5/security-settings.html#general-security-settings
           - xpack.security.enabled=false
-          - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+          - "ES_JAVA_OPTS=-Xms512m -Xmx1g"
         ulimits:
           memlock:
             soft: -1
@@ -37,6 +40,8 @@ services:
     graylog:
         image: graylog/graylog:2.3.0-1
         volumes:
+          - /etc/localtime:/etc/localtime:ro
+          - /home/lqh/docker-yml/swoole-docker/DEV/graylog.conf:/usr/share/graylog/data/config/graylog.conf
           - graylog_journal:/usr/share/graylog/data/journal
         environment:
           # CHANGE ME!
@@ -74,6 +79,7 @@ services:
             MYSQL_PASSWORD: "aoduo168"
             MYSQL_DATABASE: "aoduo"
         volumes:
+            - /etc/localtime:/etc/localtime:ro
             - /home/docker/mysql:/var/lib/mysql
         ports:
             - "13306:3306"
@@ -85,12 +91,12 @@ services:
             - "1883:1883"
         command: bash -c "/usr/sbin/mosquitto"
     #kafka server
-    kafka:
-        container_name: mykafka
-        image: wurstmeister/kafka
-        ports:
-            - "9092:9092"
-        command: bash -c "cd /opt/kafka/ &&  bin/zookeeper-server-start.sh -daemon config/zookeeper.properties && bin/kafka-server-start.sh config/server.properties"
+#kafka:
+#       container_name: mykafka
+#       image: wurstmeister/kafka
+#       ports:
+#           - "9092:9092"
+#       command: bash -c "cd /opt/kafka/ &&  bin/zookeeper-server-start.sh -daemon config/zookeeper.properties && bin/kafka-server-start.sh config/server.properties"
 
     # Redis 3.2.10: https://hub.docker.com/_/redis/
     redis:
@@ -105,6 +111,7 @@ services:
     aoduo:
         container_name: aoduo
         image: mynpf
+        hostname: aoduo
         links:
             - mysql
             - redis
@@ -124,6 +131,7 @@ services:
     guanzhi:
         container_name: guanzhi
         image: mynpf
+        hostname: guanzhi
         links:
             - mysql
             - redis
@@ -140,6 +148,7 @@ services:
     taihe:
             container_name: taihe
             image: mynpf
+            hostname: taihe
             links:
                 - mysql
                 - redis
@@ -152,24 +161,46 @@ services:
                 - "5041:8082"
                 - "5022:8000"
                 - "5012:8282"
+                - "5024:8020"
     aodsd:            
             container_name: aodsd
             image: sdbase
+            hostname: aodsd
             links:
                 - mysql
                 - redis
                 - mqtt
-                - kafka
+#               - kafka
                 - influxdb
             volumes:
                 - /etc/localtime:/etc/localtime:ro
                 - /home/lqh/projects/aoduo/bus_plat/sd:/apps
             ports:
                 - "5225:8004"
+
+    devsd:
+            container_name: devsd
+            image: sdbase
+            hostname: devsd
+            links:
+                - mysql
+                - redis
+            volumes:
+                - /etc/localtime:/etc/localtime:ro
+                - /home/lqh/projects/dev-base/bus_plat/sd:/apps
+                - /home/lqh/projects/dev-base:/var/www/html
+                - /home/lqh/docker-yml/swoole-docker/DEV/devsd.conf:/etc/nginx/sites-enabled/devsd.conf
+                - /home/lqh/docker-yml/swoole-docker/DEV/devsd-nginx.conf:/etc/nginx/nginx.conf
+            ports:
+                - "7225:8004"
+                - "7226:8022"
+#command: "nginx"
+
     # SD框架阿里云内网registry-internal.cn-hangzhou.aliyuncs.com/youwoxing/dev
     aoduo-test:
         container_name: aoduo-test
         image: mynpf
+        hostname: aoduo-test
         links:
             - mysql
             - redis
@@ -189,6 +220,7 @@ services:
     guanzhi-test:
         container_name: guanzhi-test
         image: mynpf
+        hostname: guanzhi-test
         links:
             - mysql
             - redis
@@ -205,6 +237,7 @@ services:
     taihe-test:
             container_name: taihe-test
             image: mynpf
+            hostname: taihe-test
             links:
                 - mysql
                 - redis
@@ -220,11 +253,12 @@ services:
     aodsd-test:
             container_name: aodsd-test
             image: sdbase
+            hostname: aodsd-test
             links:
                 - mysql
                 - redis
                 - mqtt
-                - kafka
+#               - kafka
                 - influxdb
             volumes:
                 - /etc/localtime:/etc/localtime:ro
