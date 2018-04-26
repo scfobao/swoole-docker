@@ -2,7 +2,7 @@ version: "2"
 services:
     #influxdb server
     influxdb:
-        image: tutum/influxdb
+        image: influxdb:1.5.2-alpine
         container_name: influxdb
         volumes: 
           - /etc/localtime:/etc/localtime:ro
@@ -38,7 +38,7 @@ services:
         mem_limit: 1g
     # Graylog: https://hub.docker.com/r/graylog/graylog/
     graylog:
-        image: graylog/graylog:2.3.0-1
+        image: graylog/graylog:2.4.3-1
         volumes:
           - /etc/localtime:/etc/localtime:ro
           - /home/lqh/docker-yml/swoole-docker/DEV/graylog.conf:/usr/share/graylog/data/config/graylog.conf
@@ -89,15 +89,19 @@ services:
         image: toke/mosquitto
         ports:
             - "1883:1883"
-        command: bash -c "/usr/sbin/mosquitto"
-    #kafka server
-#kafka:
-#       container_name: mykafka
-#       image: wurstmeister/kafka
-#       ports:
-#           - "9092:9092"
-#       command: bash -c "cd /opt/kafka/ &&  bin/zookeeper-server-start.sh -daemon config/zookeeper.properties && bin/kafka-server-start.sh config/server.properties"
+            - "9001:9001"
+        entrypoint: /usr/sbin/mosquitto -c /etc/mosquitto/mosquitto.conf
+        volumes:
+            - /home/lqh/docker-yml/swoole-docker/DEV/mosquitto.conf:/etc/mosquitto/mosquitto.conf
+            - /home/lqh/docker-yml/swoole-docker/DEV/websockets.conf:/etc/mosquitto/conf.d/websockets.conf
+#command: bash -c "/usr/sbin/mosquitto"
 
+# kafka:
+#      container_name: mykafka
+#      image: wurstmeister/kafka
+#      ports:
+#          - "9092:9092"
+#      command: bash -c "cd /opt/kafka/ &&  bin/zookeeper-server-start.sh -daemon config/zookeeper.properties && bin/kafka-server-start.sh config/server.properties"
     # Redis 3.2.10: https://hub.docker.com/_/redis/
     redis:
         container_name: redis
@@ -106,6 +110,18 @@ services:
             - /home/docker/redis:/data
         ports:
             - "16379:6379"
+    redis_manager: 
+        container_name: redis_manager
+        image: erikdubbelboer/phpredisadmin
+        links:
+            - redis
+        environment:
+            - REDIS_1_HOST=redis
+            - REDIS_1_NAME=MyRedis
+            - ADMIN_USER=admin
+            - ADMIN_PASS=admin87958
+        ports:
+            - "16380:80"
 
     # SD框架阿里云内网registry-internal.cn-hangzhou.aliyuncs.com/youwoxing/dev
     aoduo:
@@ -185,6 +201,7 @@ services:
             links:
                 - mysql
                 - redis
+                - nats
             volumes:
                 - /etc/localtime:/etc/localtime:ro
                 - /home/lqh/projects/dev-base/bus_plat/sd:/apps
@@ -194,6 +211,26 @@ services:
             ports:
                 - "7225:8004"
                 - "7226:8022"
+                - "7241:8082"
+
+
+
+    aod_devsd:
+            container_name: aod_devsd
+            image: sdbase
+            hostname: aod_devsd
+            links:
+                - mysql
+                - redis
+                - nats
+                - influxdb
+            volumes:
+                - /etc/localtime:/etc/localtime:ro
+                - /home/lqh/projects/aoduo/bus_plat/aod-devsd:/apps
+            ports:
+                - "7235:8004"
+                
+#    command: bash -c "nginx"
 #command: "nginx"
 
     # SD框架阿里云内网registry-internal.cn-hangzhou.aliyuncs.com/youwoxing/dev
@@ -216,6 +253,15 @@ services:
             - "6241:8082"
             - "6226:8021"
             - "6227:8022"
+
+    nats:
+            container_name: nats_sd
+            image: nats
+            hostname: nats
+            ports:
+                - "18222:8222"
+                - "14222:4222"
+                - "16222:6222"    
 
     guanzhi-test:
         container_name: guanzhi-test

@@ -8,8 +8,10 @@ RUN apk update
 #ͬ²½ËÖ»ú
 RUN apk add tzdata && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 RUN apk del tzdata
+RUN apk update
 RUN apk add  php7-redis \   
      php7-xdebug \
+     php7-bcmath \
      php7-pcntl \
      php7-mbstring \
      php7-json \
@@ -25,7 +27,9 @@ RUN apk add  php7-redis \
      php7-intl \
      php7-gd \
      php7-xmlwriter \
-     php7-opcache
+     php7-opcache \
+     php7-iconv \
+     php7-tokenizer 
 
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer --version=${COMPOSER_VERSION} && \
