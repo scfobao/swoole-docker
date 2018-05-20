@@ -1,72 +1,5 @@
 version: "2"
 services:
-    #influxdb server
-    influxdb:
-        image: influxdb:1.5.2-alpine
-        container_name: influxdb
-        volumes: 
-          - /etc/localtime:/etc/localtime:ro
-          - influxdb_data:/var/lib/influxdb
-        ports:
-          - "18083:8083"
-          - "18086:8086"
-          - "18090:8090"
-
-    # MongoDB: https://hub.docker.com/_/mongo/
-    mongodb:
-        image: mongo:3
-        volumes:
-          - /etc/localtime:/etc/localtime:ro
-          - mongo_data:/data/db
-      # Elasticsearch: https://www.elastic.co/guide/en/elasticsearch/reference/5.5/docker.html
-    elasticsearch:
-        image: docker.elastic.co/elasticsearch/elasticsearch:5.5.1
-        volumes:
-          - /etc/localtime:/etc/localtime:ro
-          - es_data:/usr/share/elasticsearch/data
-        environment:
-          - http.host=0.0.0.0
-          - transport.host=localhost
-          - network.host=0.0.0.0
-          # Disable X-Pack security: https://www.elastic.co/guide/en/elasticsearch/reference/5.5/security-settings.html#general-security-settings
-          - xpack.security.enabled=false
-          - "ES_JAVA_OPTS=-Xms512m -Xmx1g"
-        ulimits:
-          memlock:
-            soft: -1
-            hard: -1
-        mem_limit: 1g
-    # Graylog: https://hub.docker.com/r/graylog/graylog/
-    graylog:
-        image: graylog/graylog:2.4.3-1
-        volumes:
-          - /etc/localtime:/etc/localtime:ro
-          - /home/lqh/docker-yml/swoole-docker/DEV/graylog.conf:/usr/share/graylog/data/config/graylog.conf
-          - graylog_journal:/usr/share/graylog/data/journal
-        environment:
-          # CHANGE ME!
-          - GRAYLOG_PASSWORD_SECRET=somepasswordpepper
-          # Password: admin
-          - GRAYLOG_ROOT_PASSWORD_SHA2=8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918
-          - GRAYLOG_WEB_ENDPOINT_URI=http://www.edaoduo.com:9000/api
-        links:
-          - mongodb:mongo
-          - elasticsearch
-        depends_on:
-          - mongodb
-          - elasticsearch
-        ports:
-          # Graylog web interface and REST API
-          - 9000:9000
-          # Syslog TCP
-          - 514:514
-          # Syslog UDP
-          - 514:514/udp
-          - 5555:5555/udp
-          # GELF TCP
-          - 12201:12201
-          # GELF UDP
-          - 12201:12201/udp
 
 
     # MySQL 5.7: https://hub.docker.com/_/mysql/
@@ -74,34 +7,15 @@ services:
         container_name: mysql
         image: mysql:5.7
         environment:
-            MYSQL_ROOT_PASSWORD: "root"
-            MYSQL_USER: "aoduo"
-            MYSQL_PASSWORD: "aoduo168"
-            MYSQL_DATABASE: "aoduo"
+            MYSQL_ROOT_PASSWORD: "lqh5879412"
+            MYSQL_USER: "lqh"
+            MYSQL_PASSWORD: "lqh5879412"
+            MYSQL_DATABASE: "huishima_m"
         volumes:
             - /etc/localtime:/etc/localtime:ro
             - /home/docker/mysql:/var/lib/mysql
         ports:
             - "13306:3306"
-    #mqtt server
-    mqtt:
-        container_name: mymqtt
-        image: toke/mosquitto
-        ports:
-            - "1883:1883"
-            - "9001:9001"
-        entrypoint: /usr/sbin/mosquitto -c /etc/mosquitto/mosquitto.conf
-        volumes:
-            - /home/lqh/docker-yml/swoole-docker/DEV/mosquitto.conf:/etc/mosquitto/mosquitto.conf
-            - /home/lqh/docker-yml/swoole-docker/DEV/websockets.conf:/etc/mosquitto/conf.d/websockets.conf
-#command: bash -c "/usr/sbin/mosquitto"
-
-# kafka:
-#      container_name: mykafka
-#      image: wurstmeister/kafka
-#      ports:
-#          - "9092:9092"
-#      command: bash -c "cd /opt/kafka/ &&  bin/zookeeper-server-start.sh -daemon config/zookeeper.properties && bin/kafka-server-start.sh config/server.properties"
     # Redis 3.2.10: https://hub.docker.com/_/redis/
     redis:
         container_name: redis
@@ -110,214 +24,43 @@ services:
             - /home/docker/redis:/data
         ports:
             - "16379:6379"
-    redis_manager: 
-        container_name: redis_manager
-        image: erikdubbelboer/phpredisadmin
-        links:
-            - redis
-        environment:
-            - REDIS_1_HOST=redis
-            - REDIS_1_NAME=MyRedis
-            - ADMIN_USER=admin
-            - ADMIN_PASS=admin87958
-        ports:
-            - "16380:80"
-
-    # SD框架阿里云内网registry-internal.cn-hangzhou.aliyuncs.com/youwoxing/dev
-    aoduo:
-        container_name: aoduo
+    huishima-api:
+        container_name: huishima-api
         image: mynpf
-        hostname: aoduo
+        hostname: huishima-api
         links:
             - mysql
             - redis
         volumes:
-            - /home/lqh/projects/aoduo:/var/www/html
+            - /home/lqh/projects/hsmapi:/var/www/html
         ports:
             - "5221:8081"
-            - "5223:8019"
-            - "5224:8020"
-            - "5222:8000"
-            - "5212:8282"
-            - "5211:8383"
-            - "5241:8082"
-            - "5226:8021"
-            - "5227:8022"
 
-    guanzhi:
-        container_name: guanzhi
-        image: mynpf
-        hostname: guanzhi
-        links:
-            - mysql
-            - redis
-        volumes:
-            - /home/lqh/projects/guanzhi:/var/www/html
-        ports:
-            - "5171:8081"
-            - "5173:8019"
-            - "5174:8020"
-            - "5172:8000"
-            - "5162:8282"
-            - "5161:8383"
-            - "5191:8082"
-    taihe:
-            container_name: taihe
-            image: mynpf
-            hostname: taihe
-            links:
-                - mysql
-                - redis
-            volumes:
-                - /home/lqh/projects/taihe:/var/www/html
-            ports:
-                - "5021:8081"
-                - "5023:8019"
-                - "5011:8383"
-                - "5041:8082"
-                - "5022:8000"
-                - "5012:8282"
-                - "5024:8020"
-    aodsd:            
-            container_name: aodsd
+
+    phper:
+            container_name: phper
             image: sdbase
-            hostname: aodsd
+            hostname: phper
             links:
                 - mysql
                 - redis
-                - mqtt
-#               - kafka
-                - influxdb
             volumes:
                 - /etc/localtime:/etc/localtime:ro
-                - /home/lqh/projects/aoduo/bus_plat/sd:/apps
-            ports:
-                - "5225:8004"
-
-    devsd:
-            container_name: devsd
-            image: sdbase
-            hostname: devsd
-            links:
-                - mysql
-                - redis
-                - nats
-            volumes:
-                - /etc/localtime:/etc/localtime:ro
-                - /home/lqh/projects/dev-base/bus_plat/sd:/apps
-                - /home/lqh/projects/dev-base:/var/www/html
-                - /home/lqh/docker-yml/swoole-docker/DEV/devsd.conf:/etc/nginx/sites-enabled/devsd.conf
-                - /home/lqh/docker-yml/swoole-docker/DEV/devsd-nginx.conf:/etc/nginx/nginx.conf
+                - /home/lqh/projects/phper:/apps
             ports:
                 - "7225:8004"
-                - "7226:8022"
-                - "7241:8082"
 
 
 
-    aod_devsd:
-            container_name: aod_devsd
-            image: sdbase
-            hostname: aod_devsd
-            links:
-                - mysql
-                - redis
-                - nats
-                - influxdb
-            volumes:
-                - /etc/localtime:/etc/localtime:ro
-                - /home/lqh/projects/aoduo/bus_plat/aod-devsd:/apps
-            ports:
-                - "7235:8004"
-                
-#    command: bash -c "nginx"
-#command: "nginx"
-
-    # SD框架阿里云内网registry-internal.cn-hangzhou.aliyuncs.com/youwoxing/dev
-    aoduo-test:
-        container_name: aoduo-test
-        image: mynpf
-        hostname: aoduo-test
+    huishima-admin:
+        container_name: huishima-admin
+        image: myapache
+        hostname: huishima-admin
         links:
             - mysql
             - redis
         volumes:
-            - /home/lqh/projects-test/aoduo:/var/www/html
+            - /home/lqh/projects/huishima-admin:/app/public
         ports:
-            - "6221:8081"
-            - "6223:8019"
-            - "6224:8020"
-            - "6222:8000"
-            - "6212:8282"
-            - "6211:8383"
-            - "6241:8082"
-            - "6226:8021"
-            - "6227:8022"
+            - "8080:80"
 
-    nats:
-            container_name: nats_sd
-            image: nats
-            hostname: nats
-            ports:
-                - "18222:8222"
-                - "14222:4222"
-                - "16222:6222"    
-
-    guanzhi-test:
-        container_name: guanzhi-test
-        image: mynpf
-        hostname: guanzhi-test
-        links:
-            - mysql
-            - redis
-        volumes:
-            - /home/lqh/projects-test/guanzhi:/var/www/html
-        ports:
-            - "6171:8081"
-            - "6173:8019"
-            - "6174:8020"
-            - "6172:8000"
-            - "6162:8282"
-            - "6161:8383"
-            - "6191:8082"
-    taihe-test:
-            container_name: taihe-test
-            image: mynpf
-            hostname: taihe-test
-            links:
-                - mysql
-                - redis
-            volumes:
-                - /home/lqh/projects-test/taihe:/var/www/html
-            ports:
-                - "6021:8081"
-                - "6023:8019"
-                - "6011:8383"
-                - "6041:8082"
-                - "6022:8000"
-                - "6012:8282"
-    aodsd-test:
-            container_name: aodsd-test
-            image: sdbase
-            hostname: aodsd-test
-            links:
-                - mysql
-                - redis
-                - mqtt
-#               - kafka
-                - influxdb
-            volumes:
-                - /etc/localtime:/etc/localtime:ro
-                - /home/lqh/projects-test/aoduo/bus_plat/sd:/apps
-            ports:
-                - "6225:8004"
-# Volumes for persisting data, see https://docs.docker.com/engine/admin/volumes/volumes/
-volumes:
-     mongo_data:
-          driver: local
-     es_data:
-          driver: local
-     influxdb_data:
-          driver: local
-     graylog_journal:
-          driver: local            
