@@ -1,0 +1,20 @@
+{
+  "require": {
+    "tmtbe/swooledistributed":">=2.8.0",
+    "flc/alidayu":">=v2.0.6",
+    "robmorgan/phinx":">=v0.8.1",
+    "nuovo/spreadsheet-reader":">=0.5.11",
+    "influxdb/influxdb-php":">=1.14.5",
+    "repejota/nats": "dev-master"
+  },
+ "autoload": {
+    "psr-4": {
+      "app\\": "src/app",
+      "test\\": "src/test"
+    },
+   "files": [
+     "src/app/Helper/Common.php"
+   ]
+  }
+}
+

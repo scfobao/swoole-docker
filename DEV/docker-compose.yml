@@ -110,6 +110,16 @@ services:
             - /home/docker/redis:/data
         ports:
             - "16379:6379"
+
+    redis-test:
+        container_name: redis-test
+        image: redis:3.2.10
+        volumes:
+            - /home/docker/redis-test:/data
+        ports:
+            - "16378:6379"
+
+
     redis_manager: 
         container_name: redis_manager
         image: erikdubbelboer/phpredisadmin
@@ -144,59 +154,10 @@ services:
             - "5226:8021"
             - "5227:8022"
 
-    guanzhi:
-        container_name: guanzhi
-        image: mynpf
-        hostname: guanzhi
-        links:
-            - mysql
-            - redis
-        volumes:
-            - /home/lqh/projects/guanzhi:/var/www/html
-        ports:
-            - "5171:8081"
-            - "5173:8019"
-            - "5174:8020"
-            - "5172:8000"
-            - "5162:8282"
-            - "5161:8383"
-            - "5191:8082"
-    taihe:
-            container_name: taihe
-            image: mynpf
-            hostname: taihe
-            links:
-                - mysql
-                - redis
-            volumes:
-                - /home/lqh/projects/taihe:/var/www/html
-            ports:
-                - "5021:8081"
-                - "5023:8019"
-                - "5011:8383"
-                - "5041:8082"
-                - "5022:8000"
-                - "5012:8282"
-                - "5024:8020"
-    aodsd:            
-            container_name: aodsd
-            image: sdbase
-            hostname: aodsd
-            links:
-                - mysql
-                - redis
-                - mqtt
-#               - kafka
-                - influxdb
-            volumes:
-                - /etc/localtime:/etc/localtime:ro
-                - /home/lqh/projects/aoduo/bus_plat/sd:/apps
-            ports:
-                - "5225:8004"
 
     devsd:
             container_name: devsd
-            image: sdbase
+            image: sd3base
             hostname: devsd
             links:
                 - mysql
@@ -212,12 +173,31 @@ services:
                 - "7225:8004"
                 - "7226:8022"
                 - "7241:8082"
+#            entrypoint: ["nginx"]
+
+
+
+    devsd-test:
+            container_name: devsd-test
+            image: sd3base
+            hostname: devsd-test
+            links:
+                - mysql
+                - redis-test
+                - nats
+            volumes:
+                - /etc/localtime:/etc/localtime:ro
+                - /home/lqh/projects-test/dev-base/bus_plat/sd:/apps
+            ports:
+                - "7125:8004"
+                - "7126:8022"
+                - "7141:8082"
 
 
 
     aod_devsd:
             container_name: aod_devsd
-            image: sdbase
+            image: sd3base
             hostname: aod_devsd
             links:
                 - mysql
@@ -227,6 +207,22 @@ services:
             volumes:
                 - /etc/localtime:/etc/localtime:ro
                 - /home/lqh/projects/aoduo/bus_plat/aod-devsd:/apps
+            ports:
+                - "7135:8004"
+
+
+    aod_devsd-test:
+            container_name: aod_devsd-test
+            image: sd3base
+            hostname: aod_devsd-test
+            links:
+                - mysql
+                - redis-test
+                - nats
+                - influxdb
+            volumes:
+                - /etc/localtime:/etc/localtime:ro
+                - /home/lqh/projects-test/aoduo/bus_plat/aod-devsd:/apps
             ports:
                 - "7235:8004"
                 
@@ -240,7 +236,7 @@ services:
         hostname: aoduo-test
         links:
             - mysql
-            - redis
+            - redis-test
         volumes:
             - /home/lqh/projects-test/aoduo:/var/www/html
         ports:
@@ -263,54 +259,18 @@ services:
                 - "14222:4222"
                 - "16222:6222"    
 
-    guanzhi-test:
-        container_name: guanzhi-test
-        image: mynpf
-        hostname: guanzhi-test
-        links:
-            - mysql
-            - redis
-        volumes:
-            - /home/lqh/projects-test/guanzhi:/var/www/html
-        ports:
-            - "6171:8081"
-            - "6173:8019"
-            - "6174:8020"
-            - "6172:8000"
-            - "6162:8282"
-            - "6161:8383"
-            - "6191:8082"
-    taihe-test:
-            container_name: taihe-test
-            image: mynpf
-            hostname: taihe-test
+    
+    caixx:
+            container_name: caixx
+            image: tutum/apache-php
+            hostname: caixx
             links:
                 - mysql
-                - redis
             volumes:
-                - /home/lqh/projects-test/taihe:/var/www/html
+                - /opt/cxx/www:/app
             ports:
-                - "6021:8081"
-                - "6023:8019"
-                - "6011:8383"
-                - "6041:8082"
-                - "6022:8000"
-                - "6012:8282"
-    aodsd-test:
-            container_name: aodsd-test
-            image: sdbase
-            hostname: aodsd-test
-            links:
-                - mysql
-                - redis
-                - mqtt
-#               - kafka
-                - influxdb
-            volumes:
-                - /etc/localtime:/etc/localtime:ro
-                - /home/lqh/projects-test/aoduo/bus_plat/sd:/apps
-            ports:
-                - "6225:8004"
+                - "6180:80"
+
 # Volumes for persisting data, see https://docs.docker.com/engine/admin/volumes/volumes/
 volumes:
      mongo_data:
